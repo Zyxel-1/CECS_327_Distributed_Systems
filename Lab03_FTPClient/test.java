@@ -364,7 +364,12 @@ public class test {
                 if(success) {
                     System.out.println("Retrieved the following file: "+directoryName);
                 }
+
+
                 break;
+
         }
     }
+
+
 }
