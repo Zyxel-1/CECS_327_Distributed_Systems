@@ -28,57 +28,52 @@ public class Assn3 {
 		ArrayList<String> arguments = ReadTerminalInputs(args);
 		// Creating FTP Object
 	    FTPClient ftp = new FTPClient();
+		// Attempting to connect to server
 		ConnectToServer(arguments.get(0),ftp);
+		// Parsing Credentials
 		String[] credentials = arguments.get(1).split(":");
         String userName = credentials[0];
         String password = credentials[1];
+		// Attempting to Login
 		Login(userName,password,ftp);
-		System.out.println("*** Going through arguments...***");
 		// Begin processing all arguments
+		System.out.println("*** Going through arguments...***");
 		for(int i = 2; i< arguments.size();i++){
-			//RunCommand(arguments.get(i),ftp);
-			System.out.println("Argument["+i+"]"+arguments.get(i));
+			// Stating what command is going to run
+			System.out.println("***Running Argument["+i+"]: "+arguments.get(i));
 			// Note: This part will break up each token to sub parts
 			//		 which will get executed individualy.
 			// Cleaning token received from terminal
 			String token = arguments.get(i).replaceAll("\'","");
 			// Cleaning up whitespaces and tabs
-			System.out.println(token);
 			String command[] = token.split("\\s+");
 			// Since the first part after the credentials is the command we will
 			// run it. Once inside a FTP command we will run the rest of the the operations
 			switch(command[0]){
 				// Checking if command is a 'ls'
 				case "ls":
-					System.out.println("ls");
 					ls(ftp,command);
 					break;
 				case "cd":
-					System.out.println("cd");
 					cd(ftp,command);
 					break;
 				case "delete":
-					System.out.println("Delete");
-					delete(ftp,command[0]);
+					delete(ftp,command);
 					break;
 				case "get" :
-					System.out.println("Get");
-					get(ftp,command[0]);
+					get(ftp,command);
 					break;
 				case "put":
-					System.out.println("Put");
-					put(ftp,command[0]);
+					put(ftp,command);
 					break;
 				case "mkdir":
-					System.out.println("mkdir");
-					mkdir(ftp,command[0]);
+					mkdir(ftp,command);
 					break;
 				case "rmdir":
-					System.out.println("rmdir");
-					rmdir(ftp,command[0]);
+					rmdir(ftp,command);
 					break;
 				default:
-					System.out.println("Command not understood:"+command[0]);
+					System.out.println("(!) Command not understood:" + command[0]);
 				break;
 				}
 			}
@@ -86,31 +81,38 @@ public class Assn3 {
 			try{
 				ftp.disconnect();
 			}catch(IOException e){
-
+				System.out.println("(!) An error has occured while disconnecting...");
 			}
 	}
 	//------------------------------------------------------------------------------
-	public static void delete(FTPClient ftp, String arguments){
+	public static void delete(FTPClient ftp, String arguments[]){
 		// Work on
 	}
 	//------------------------------------------------------------------------------
-	public static void put(FTPClient ftp, String arguments){
+	public static void put(FTPClient ftp, String arguments[]){
 		// Work on
 	}
 	//------------------------------------------------------------------------------
-	public static void get(FTPClient ftp, String arguments){
+	public static void get(FTPClient ftp, String arguments[]){
 		// Work on
 	}
 	//------------------------------------------------------------------------------
-	public static void rmdir(FTPClient ftp, String arguments){
+	public static void rmdir(FTPClient ftp, String arguments[]){
 		// Work on
 	}
 	//------------------------------------------------------------------------------
-	public static void mkdir(FTPClient ftp, String arguments){
-		// Work on
+	public static void mkdir(FTPClient ftp, String arguments[]){
+		String dir = "";
+		dir = directory(arguments);
+		try{
+			if(ftp.makeDirectory(dir)){
+				System.out.println("*** Successfully Created directory:"+dir);
+			}
+		}catch(IOException e){
+			System.out.println("(!) An error occured while creating a directory.");
+		}
 	}
-	//------------------------------------------------------------------------------
-	public static void cd(FTPClient ftp, String arguments[]){
+	public static String directory(String arguments[]){
 		String dir = "";
 		for(int j = 1;j<arguments.length;j++){
 			if(j == arguments.length - 1){
@@ -119,7 +121,13 @@ public class Assn3 {
 				dir += arguments[j]+" ";
 			}
 		}
-		System.out.println(dir);
+		return dir;
+	}
+	//------------------------------------------------------------------------------
+	public static void cd(FTPClient ftp, String arguments[]){
+		String dir = "";
+		dir = directory(arguments);
+		
 		try{
 			// If user inputed '..' as directory
 			if(dir == ".."){
@@ -127,31 +135,36 @@ public class Assn3 {
 					System.out.println("Failed to cd ..");
 				}
 				serverResponse(ftp);
-				}else{
-					if(ftp.changeWorkingDirectory(dir)){
-						System.out.println("Current Directory:"+dir);
-					}
+			}else{
+			// If user has acutal directory
+				if(ftp.changeWorkingDirectory(dir)){
 					serverResponse(ftp);
+					System.out.println("Current Directory:"+dir);
+				}else{
+					System.out.println("(!) Could not change directory with: )"+dir);
 				}
+			}
 			}catch(IOException e){
-				System.out.println("An error has occured in the CD command. Check your input: "+dir);
+				System.out.println("(!) An error has occured in the CD command. Check your input: "+dir);
 			}
 	}
 	//------------------------------------------------------------------------------
 	public static void ls(FTPClient ftp, String arguments[]){
 		try{
-						System.out.println("Running ls command:");
-						FTPFile[] directory = ftp.listFiles();
-						serverResponse(ftp);
-						for(int j = 0; j<directory.length;j++){
-							System.out.println(directory[j]);
-						}
-					}catch(IOException e){
-						System.out.println("An error occured while printing directory.");
-					}
+			// Gests the current directory currently at
+			FTPFile[] directory = ftp.listFiles();
+			serverResponse(ftp);
+			// Printing directory
+			for(int j = 0; j < directory.length; j++){
+				System.out.println(directory[j]);
+			}
+		}catch(IOException e){
+			System.out.println("(!) An error occured while printing directory.");
+		}
 	}
 	//------------------------------------------------------------------------------
 	public static ArrayList<String> ReadTerminalInputs(String[] args){
+		// Takes in arguments into ArrayList
 		ArrayList<String> arguments = new ArrayList<String>();
 		for(int i = 0; i< args.length;i++){
 			arguments.add(args[i]);
@@ -160,11 +173,11 @@ public class Assn3 {
 	}
 	//------------------------------------------------------------------------------
 	private static void serverResponse(FTPClient ftp){
-		//System.out.println("Response: "+ftp.getReplyStrings());
+		// Prints out the response from server
 		System.out.println("|----------Server Response----------|");
 		String[] replies = ftp.getReplyStrings();
-    if (replies != null && replies.length > 0) {
-        for (String aReply : replies) {
+    	if (replies != null && replies.length > 0) {
+        	for (String aReply : replies) {
                 System.out.println(aReply);
             }
         }
@@ -173,7 +186,7 @@ public class Assn3 {
 	public static void ConnectToServer(String IpAddress, FTPClient ftp){
 		try {
 				// Connecting to server
-				System.out.println("*** Attempting to connect to:"+IpAddress);
+				System.out.println("*** Attempting to connect to: "+IpAddress);
 				ftp.connect(IpAddress);
 				// Display Response
 				serverResponse(ftp);
@@ -181,7 +194,7 @@ public class Assn3 {
 					System.out.println("Connection Success");
 				}
 		}catch(IOException e){
-					System.out.println("Connection Failed.");
+					System.out.println("(!) Connection Failed.");
 
 		}
 	}
@@ -189,16 +202,17 @@ public class Assn3 {
 	public static void Login(String userName,String password, FTPClient ftp){
 		try{
 			System.out.println("*** Attempting to login as: "+userName);
+			// Pass credentials in login function, returns true if success, false for failed
 			if(ftp.login(userName,password)) {
 				System.out.println("Login Successful");
 				serverResponse(ftp);
 				System.out.println("Reply Code: "+ ftp.getReplyCode());
 			}else {
-				System.out.println("Login Failed: Check your credentials.");
+				System.out.println("(!) Login Failed: Check your credentials.");
 				return;
 			}
 		}catch(IOException e){
-			System.out.println("An Error occured while Logging In");
+			System.out.println("(!) An Error occured while Logging In");
 		}	
 	}
 }
