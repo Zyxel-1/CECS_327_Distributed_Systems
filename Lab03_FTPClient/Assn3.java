@@ -7,11 +7,15 @@
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
-
+import java.util.*;
+import java.util.regex.*;
+import java.io.*;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTP;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /*
 IP:13.57.240.111
@@ -86,19 +90,69 @@ public class Assn3 {
 	}
 	//------------------------------------------------------------------------------
 	public static void delete(FTPClient ftp, String arguments[]){
-		// Work on
+		String dir = "";
+		dir = directory(arguments);
+		try{
+			if(ftp.deleteFile(dir)){
+				System.out.println("*** "+dir+" has been deleted from directory.");
+				serverResponse(ftp);
+			}
+		}catch(IOException e){
+			System.out.println("(!) An error has occured while deleting.");
+		}
 	}
 	//------------------------------------------------------------------------------
 	public static void put(FTPClient ftp, String arguments[]){
-		// Work on
+		String dir = "";
+		dir = directory(arguments);
+		try{
+			ftp.setFileType(FTP.BINARY_FILE_TYPE);
+			Path path = Paths.get(dir);
+			String remote = path.getFileName().toString();
+			File localFile = new File(dir);
+			InputStream inputstream = new FileInputStream(localFile);
+			if(ftp.storeFile(remote,inputstream)){
+				System.out.println("*** "+dir+" has been uploaded");	
+			}
+		}catch(IOException e){
+			System.out.println("(!) An error has occured in put.");
+		}
 	}
 	//------------------------------------------------------------------------------
 	public static void get(FTPClient ftp, String arguments[]){
-		// Work on
+		String dir = "";
+		dir = directory(arguments);
+		try{
+			ftp.enterLocalPassiveMode();
+			ftp.setFileType(FTP.BINARY_FILE_TYPE);
+			File remote = new File(dir);
+			FileOutputStream downloadFile = new FileOutputStream(remote);
+			if(ftp.retrieveFile(dir,downloadFile)){
+				System.out.println("Downloaded the following file: "+ dir);
+				serverResponse(ftp);
+			}
+		}catch(IOException e){
+			System.out.println("(!) An error has occured while geting.");
+		}
 	}
 	//------------------------------------------------------------------------------
 	public static void rmdir(FTPClient ftp, String arguments[]){
-		// Work on
+		String dir = "";
+		dir = directory(arguments);
+		try{
+			FTPFile[] files = ftp.listFiles(dir);
+			// Does files exist?
+			if(files.length > 0){
+				for(FTPFile file:files){
+					if(file.isDirectory()){
+						// FIGURE OUT
+					}
+
+				}
+			}
+		}catch(IOException e){
+			System.out.println("(!) An error has occured in rmdir.");
+		}
 	}
 	//------------------------------------------------------------------------------
 	public static void mkdir(FTPClient ftp, String arguments[]){
@@ -195,7 +249,6 @@ public class Assn3 {
 				}
 		}catch(IOException e){
 					System.out.println("(!) Connection Failed.");
-
 		}
 	}
 	//------------------------------------------------------------------------------
