@@ -8,22 +8,28 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.*;
+
 import java.util.regex.*;
 import java.io.*;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTP;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /*
-IP:13.57.240.111
  * Note: Order of arguments matter
  * 1. IP address of ftp server
  * 2. username and password (ex. cecs327:cecs327)
  * 3. From there on its broken up into chunks (ex. [Command] [Stuff with Spaces])
  * 	  a. Be able to separate the command from the 
+ * How to compile it:
+ *  javac -cp "commons-net-3.6.jar" Assn3.java
+ * How to run it:
+ * java -cp ".:commons-net-3.6.jar" Assn3 "13.57.240.111" cecs327:cecs327 "cd files" ls
  */
 public class Assn3 {
 	
@@ -94,8 +100,8 @@ public class Assn3 {
 		dir = directory(arguments);
 		try{
 			if(ftp.deleteFile(dir)){
-				System.out.println("*** "+dir+" has been deleted from directory.");
-				serverResponse(ftp);
+				System.out.println("*** "+ dir + " has been deleted from directory.");
+				ServerResponse(ftp);
 			}
 		}catch(IOException e){
 			System.out.println("(!) An error has occured while deleting.");
@@ -108,15 +114,27 @@ public class Assn3 {
 		try{
 			ftp.setFileType(FTP.BINARY_FILE_TYPE);
 			Path path = Paths.get(dir);
-			String remote = path.getFileName().toString();
+			String local = path.getFileName().toString();
 			File localFile = new File(dir);
-			InputStream inputstream = new FileInputStream(localFile);
-			if(ftp.storeFile(remote,inputstream)){
-				System.out.println("*** "+dir+" has been uploaded");	
+			if(localFile.isDirectory()){
+				//RecursivePut(ftp,dir);
+				//System.out.println("Recursive put command does not work yet...");
+			}else{
+				// If there is only one put file
+				InputStream inputstream = new FileInputStream(localFile);
+				if(ftp.storeFile(local,inputstream)){
+					System.out.println("*** "+ dir + " has been uploaded");	
 			}
+			}
+			
 		}catch(IOException e){
 			System.out.println("(!) An error has occured in put.");
 		}
+	}
+	//------------------------------------------------------------------------------
+	public static void RecursivePut(FTPClient ftp, String parentDir){
+		
+		
 	}
 	//------------------------------------------------------------------------------
 	public static void get(FTPClient ftp, String arguments[]){
@@ -125,33 +143,116 @@ public class Assn3 {
 		try{
 			ftp.enterLocalPassiveMode();
 			ftp.setFileType(FTP.BINARY_FILE_TYPE);
+			// If user wants to get a directory, return all files inside.
 			File remote = new File(dir);
+			if(remote.isDirectory()){
+				RecursiveGet(ftp,dir,"");
+			}
 			FileOutputStream downloadFile = new FileOutputStream(remote);
 			if(ftp.retrieveFile(dir,downloadFile)){
 				System.out.println("Downloaded the following file: "+ dir);
-				serverResponse(ftp);
+				ServerResponse(ftp);
 			}
 		}catch(IOException e){
 			System.out.println("(!) An error has occured while geting.");
 		}
 	}
 	//------------------------------------------------------------------------------
-	public static void rmdir(FTPClient ftp, String arguments[]){
-		String dir = "";
-		dir = directory(arguments);
+	public static void RecursiveGet(FTPClient ftp, String parentDir,String currentDir){
 		try{
-			FTPFile[] files = ftp.listFiles(dir);
-			// Does files exist?
-			if(files.length > 0){
-				for(FTPFile file:files){
-					if(file.isDirectory()){
-						// FIGURE OUT
-					}
-
-				}
+			String dirToList = parentDir;
+			if (!currentDir.equals("")) {
+				dirToList += "/" + currentDir;
 			}
+        	FTPFile[] subFiles = ftp.listFiles(dirToList);
+			if (subFiles != null && subFiles.length > 0) {
+				for (FTPFile aFile : subFiles) {
+					String currentFileName = aFile.getName();
+					if (currentFileName.equals(".") || currentFileName.equals("..")) {
+						// skip parent directory and the directory itself
+						continue;
+					}
+					String filePath = parentDir + "/" + currentDir + "/"
+							+ currentFileName;
+					if (currentDir.equals("")) {
+						filePath = parentDir + "/" + currentFileName;
+					}
+					if (aFile.isDirectory()) {
+						// remove the sub directory
+						RecursiveGet(ftp, dirToList, currentFileName);
+					} else {
+						// delete the file
+						File remote = new File(filePath);
+						FileOutputStream downloadFile = new FileOutputStream(remote);
+						if(ftp.retrieveFile(filePath,downloadFile)){
+							System.out.println("Successfully Retrieved the file: " + filePath);
+							ServerResponse(ftp);
+						}else{
+							System.out.println("(!) CANNOT Get the file: "
+									+ filePath);
+						}
+					}
+				}
+        	}
 		}catch(IOException e){
-			System.out.println("(!) An error has occured in rmdir.");
+			System.out.println("(!) An error occured in Recursive Delete.");
+		}
+	}
+	//------------------------------------------------------------------------------
+	public static void rmdir(FTPClient ftp, String arguments[]){
+
+			String dir = "";
+			dir = directory(arguments);
+			RecursiveDelete(ftp,dir,"");
+		
+	}
+	// NOTE: This function is used from codejava.net.
+	// http://www.codejava.net/java-se/networking/ftp/how-to-remove-a-non-empty-directory-on-a-ftp-server
+	//------------------------------------------------------------------------------
+	public static void RecursiveDelete(FTPClient ftp, String parentDir,String currentDir){
+		try{
+			String dirToList = parentDir;
+			if (!currentDir.equals("")) {
+				dirToList += "/" + currentDir;
+			}
+        	FTPFile[] subFiles = ftp.listFiles(dirToList);
+			if (subFiles != null && subFiles.length > 0) {
+				for (FTPFile aFile : subFiles) {
+					String currentFileName = aFile.getName();
+					if (currentFileName.equals(".") || currentFileName.equals("..")) {
+						// skip parent directory and the directory itself
+						continue;
+					}
+					String filePath = parentDir + "/" + currentDir + "/"
+							+ currentFileName;
+					if (currentDir.equals("")) {
+						filePath = parentDir + "/" + currentFileName;
+					}
+					if (aFile.isDirectory()) {
+						// remove the sub directory
+						RecursiveDelete(ftp, dirToList, currentFileName);
+					} else {
+						// delete the file
+						boolean deleted = ftp.deleteFile(filePath);
+						if (deleted) {
+							System.out.println("DELETED the file: " + filePath);
+						} else {
+							System.out.println("CANNOT delete the file: "
+									+ filePath);
+						}
+					}
+				}
+				// finally, remove the directory itself
+				System.out.println("DELETE PARENT");
+				boolean removed = ftp.removeDirectory(dirToList);
+				if (removed) {
+					System.out.println("REMOVED the directory: " + dirToList);
+				} else {
+					System.out.println("CANNOT remove the directory: " + dirToList);
+				}
+        	}
+		}catch(IOException e){
+			System.out.println("(!) An error occured in Recursive Delete.");
 		}
 	}
 	//------------------------------------------------------------------------------
@@ -166,13 +267,14 @@ public class Assn3 {
 			System.out.println("(!) An error occured while creating a directory.");
 		}
 	}
+	//------------------------------------------------------------------------------
 	public static String directory(String arguments[]){
 		String dir = "";
 		for(int j = 1;j<arguments.length;j++){
 			if(j == arguments.length - 1){
 				dir += arguments[j];
 			}else{
-				dir += arguments[j]+" ";
+				dir += arguments[j] + " ";
 			}
 		}
 		return dir;
@@ -188,11 +290,11 @@ public class Assn3 {
 				if(ftp.changeToParentDirectory()){
 					System.out.println("Failed to cd ..");
 				}
-				serverResponse(ftp);
+				ServerResponse(ftp);
 			}else{
 			// If user has acutal directory
 				if(ftp.changeWorkingDirectory(dir)){
-					serverResponse(ftp);
+					ServerResponse(ftp);
 					System.out.println("Current Directory:"+dir);
 				}else{
 					System.out.println("(!) Could not change directory with: )"+dir);
@@ -207,7 +309,7 @@ public class Assn3 {
 		try{
 			// Gests the current directory currently at
 			FTPFile[] directory = ftp.listFiles();
-			serverResponse(ftp);
+			ServerResponse(ftp);
 			// Printing directory
 			for(int j = 0; j < directory.length; j++){
 				System.out.println(directory[j]);
@@ -226,7 +328,7 @@ public class Assn3 {
 		return arguments;
 	}
 	//------------------------------------------------------------------------------
-	private static void serverResponse(FTPClient ftp){
+	private static void ServerResponse(FTPClient ftp){
 		// Prints out the response from server
 		System.out.println("|----------Server Response----------|");
 		String[] replies = ftp.getReplyStrings();
@@ -243,7 +345,7 @@ public class Assn3 {
 				System.out.println("*** Attempting to connect to: "+IpAddress);
 				ftp.connect(IpAddress);
 				// Display Response
-				serverResponse(ftp);
+				ServerResponse(ftp);
 				if(FTPReply.isPositiveCompletion(ftp.getReplyCode())){
 					System.out.println("Connection Success");
 				}
@@ -258,7 +360,7 @@ public class Assn3 {
 			// Pass credentials in login function, returns true if success, false for failed
 			if(ftp.login(userName,password)) {
 				System.out.println("Login Successful");
-				serverResponse(ftp);
+				ServerResponse(ftp);
 				System.out.println("Reply Code: "+ ftp.getReplyCode());
 			}else {
 				System.out.println("(!) Login Failed: Check your credentials.");
@@ -268,4 +370,5 @@ public class Assn3 {
 			System.out.println("(!) An Error occured while Logging In");
 		}	
 	}
+	//------------------------------------------------------------------------------
 }

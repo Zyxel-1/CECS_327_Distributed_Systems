@@ -22,7 +22,7 @@ import org.apache.commons.net.ftp.FTP;
 */
 
 /* 
-    Commands that will be supported by this program
+    Commands that should be supported by this program
     ls 
     cd
     cd ..
@@ -30,11 +30,12 @@ import org.apache.commons.net.ftp.FTP;
     get 'filename'
     get 'directory name'
     put 'file name'
+    put 'directory name'
     mkdir 'directory name'
     rmdir 'directory name'
 */
 
-public class test {
+public class lol {
     public static void main(String[] args) {
 
         ArrayList<String> execution = new ArrayList<String>();
@@ -45,8 +46,6 @@ public class test {
            execution.add(args[i]);
            
        }
-        // TESTING ONLY: printing out the array list to make sure the right args go through
-       System.out.println(execution);
 
         FTPClient ftpClient = new FTPClient();
         try {
@@ -63,10 +62,11 @@ public class test {
             // pass in the arguments for the username and password which is stored as the second argument
             // first, I need to split the username and password (args[1]) by the ':' character
             String[] username = parseUsername(execution.get(1));
-            boolean success = ftpClient.login(username[0], username[1]);
+            boolean login_success = ftpClient.login(username[0], username[1]);
             showServerReply(ftpClient);
 
-            if(!success) {
+            if(!login_success) 
+            {
                 System.out.println("Login failed");
                 return;
             }
@@ -80,9 +80,9 @@ public class test {
                 HandleCommand(execution.get(command_pointer), ftpClient);
             }
         
-         } catch (IOException exc) {
-             System.out.println("Something went wrong");
-             exc.printStackTrace();
+         } catch (IOException ex) {
+             System.out.println("Something went wrong while executing one of the instructions.");
+             ex.printStackTrace();
          }
         
         // at the end, logout and disconnect from FTP client
@@ -116,19 +116,6 @@ public class test {
     
 
     private static void HandleCommand(String command, FTPClient ftpClient) {
-        /*
-        Create an ArrayList that holds the allowed FTP commands
-
-        ArrayList<String> operations = new ArrayList<String>();
-        operations.add("ls"); // DONE
-        operations.add("cd"); // DONE
-        operations.add("delete"); // DONE
-        operations.add("get");     // 
-        operations.add("put");  //  DONE
-        operations.add("mkdir"); // DONE
-        operations.add("rmdir");  // DONE
-
-        */
 
         // Remove the instances of single quotes
         command = command.replaceAll("\'","");
@@ -204,7 +191,7 @@ public class test {
                             // deal with that first
                             if (ftpFile.isDirectory())
                             {
-                                System.out.println("The following is a directory inside "+directoryName+": "+ftpFile+"\n");
+                                System.out.println("The following is a directory inside "+directoryName+": "+ftpFile.getName()+"\n");
                                 HandleCommand("rmdir "+directoryName+"/"+ftpFile.getName() , ftpClient);
                             }
 
@@ -227,7 +214,6 @@ public class test {
                 if (success) {
                      System.out.println("The following directory has been removed: " + directoryName);
                  } 
-
 
                 break;
 
@@ -310,26 +296,74 @@ public class test {
                         directoryName += op[i]+" ";
                     }
                 }
-                    
+
                 try {
-                    // ftpClient.enterLocalPassiveMode();
-                    ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
-                     Path p = Paths.get(directoryName);
-                    // strip out the file path so we are only left with the file name and file extension
-                     String remotefile_name = p.getFileName().toString();
+                    File localDir = new File(directoryName);
+                    if(localDir.isDirectory())
+                    {
+                        // split the directory name based off of '/'. 
+                        String[] dName = directoryName.split("/");
+                        // we only want the name of the last subfolder in the path. this will be used in the recursive calls
+                        HandleCommand("mkdir "+dName[dName.length - 1] , ftpClient);
+                        HandleCommand("cd "+dName[dName.length - 1] , ftpClient);
+                        // determine the sub-directories
+                        File[] subFile = localDir.listFiles();
 
-                    File localFile = new File(directoryName);
-                    InputStream inputStream = new FileInputStream(localFile);
+                            // if there are sub-directories
+                            if(subFile.length > 0)
+                            {
+                                for( File single: subFile)
+                                {
+                                    // if there's a sub directory, run the 'put' function on it
+                                    // after completion, of 'put' operation, cd out of that directory
+                                    if(single.isDirectory())
+                                    {
+                                        HandleCommand("put "+directoryName+"/"+single.getName(), ftpClient);
+                                        HandleCommand("cd .." , ftpClient);
+                                    }
+                                    else
+                                    {
+                                        // ftpClient.enterLocalPassiveMode();
+                                        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+                                        // name of the file on the remote client will be the file name
+                                        String remotefile_name = single.getName();
+                                        // path to that file on local directory
+                                        File localFile = new File(directoryName+"/"+remotefile_name);
+                                        InputStream inputStream = new FileInputStream(localFile);
 
-                    success = ftpClient.storeFile(remotefile_name,inputStream);
-                    showServerReply(ftpClient);
-                    inputStream.close();
+                                        success = ftpClient.storeFile(remotefile_name,inputStream);
+                                        showServerReply(ftpClient);
+                                        inputStream.close();
+
+                                    }
+                                }
+                            }
+                        
+                    }
+                    // otherwise, if they're just trying to 'put' a file, take this path
+                    else
+                    {
+                        // ftpClient.enterLocalPassiveMode();
+                        ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+                        Path p = Paths.get(directoryName);
+                        // strip out the file path so we are only left with the file name and file extension
+                        String remotefile_name = p.getFileName().toString();
+
+                        File localFile = new File(directoryName);
+                        InputStream inputStream = new FileInputStream(localFile);
+
+                        success = ftpClient.storeFile(remotefile_name,inputStream);
+                        showServerReply(ftpClient);
+                        inputStream.close();
+                    }
+
+                    
                 } catch (IOException ioe) {
                     System.out.println("Issue while executing put. Failed to store the file.");
                 }
 
                 if (success) {
-                     System.out.println("Stored the following file: " + directoryName);
+                     System.out.println("Successfully stored the following file/folder: " + directoryName);
                  }
 
                 break;
