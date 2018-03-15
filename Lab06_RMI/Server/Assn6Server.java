@@ -2,7 +2,7 @@
 *   Name: Roberto Sanchez
 *   Date: March 14, 2018
 *   Assignment 06 - RMI Project
-*   Purpose:
+*   Purpose: Handles the RMI from Client
 */
 import java.rmi.*;
 import java.rmi.server.*;   

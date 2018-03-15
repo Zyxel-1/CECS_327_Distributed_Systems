@@ -7,7 +7,6 @@
 import java.rmi.*;
 public interface MethodInterface extends Remote {
 
-	public int add(int a, int b) throws RemoteException;
 	public int Factorial(int a) throws RemoteException;
 	public int Fibonacci(int a) throws RemoteException;
 

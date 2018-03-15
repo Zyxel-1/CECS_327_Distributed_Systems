@@ -2,37 +2,41 @@
 *   Name: Roberto Sanchez
 *   Date: March 14, 2018
 *   Assignment 06 - RMI Project
-*   Purpose:
+*   Purpose: Sends an integer to the server to be processed.
+*   Inputs: [IP-Address] [Function] [Number]
+*   Example: java Assn6Client xxx.xxx.xx.x Factorial 5
 */
 import java.rmi.*;
+import java.util.*;
  
 public class Assn6Client {
+        
 	public static void main (String[] args) {
-        // Not sure if I need this on client side
         MethodInterface serverMethods;
 		try {
+            // Printing out Inputs to verify if reading properly.
+            System.out.println("Your IP Address: " + args[0]);
+            System.out.println("You have selected: " + args[1]);
+            System.out.println("Input number was: " + args[2]);
+            // Setting up connection to Server
+            String connection = "rmi://" + args[0] + "/ABC";
             // Connects to server and communicates with the server.
-            //serverMethods = (MethodInterface)Naming.lookup("rmi:13.57.240.111");
-            //serverMethods = (MethodInterface)Naming.lookup("rmi:"+ args[0]);
-            serverMethods = (MethodInterface)Naming.lookup("rmi://localhost/ABC");
-            int input = 10;
+            serverMethods = (MethodInterface)Naming.lookup(connection);
+            // Local Development connection
+            //serverMethods = (MethodInterface)Naming.lookup("rmi://localhost/ABC");
+            // Parse input number
+            int input = Integer.parseInt(args[2]);
             int result = -1;
-            System.out.println(args[0]);
-			if(args[0] == "fibonacci"){
-                // Converts string into integer
-                //input = Integer.parseInt(args[0]);
-                // Passes integer into method
-                result = serverMethods.Fibonacci(input);
-            }else if(args[0] == "factorial"){
-                // Converts string into integer
-                //input = Integer.parseInt(args[0]);
-                // Passes integer into method
-                result = serverMethods.Factorial(input);
-            }else if(args[0] == "add"){
-                result = serverMethods.add(input,1);
-            }else{
-                // Throws error
-                System.out.println("(!) An error occured, check your inputs.");
+            // Determine which function user choose
+            switch(args[1]){
+                case "Fibonacci":
+                    result = serverMethods.Fibonacci(input);
+                    break;
+                case "Factorial":
+                    result = serverMethods.Factorial(input);
+                    break;
+                default:
+                    System.out.println("(!) An Error occured, check your inputs.");
             }
             // Display Results
 			System.out.println("Result is :"+result);
