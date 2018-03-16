@@ -15,9 +15,9 @@ public class Assn6Client {
         MethodInterface serverMethods;
 		try {
             // Printing out Inputs to verify if reading properly.
-            System.out.println("Your IP Address: " + args[0]);
+            System.out.println("Your IP Address: "   + args[0]);
             System.out.println("You have selected: " + args[1]);
-            System.out.println("Input number was: " + args[2]);
+            System.out.println("Input number was: "  + args[2]);
 
             // Connects to server and communicates with the server.
             serverMethods = (MethodInterface)Naming.lookup(args[0]);
@@ -28,11 +28,11 @@ public class Assn6Client {
             int result = -1;
             // Determine which function user choose
             switch(args[1]){
-                case "Fibonacci":
-                    result = serverMethods.Fibonacci(input);
+                case "fibonacci":
+                    result = serverMethods.fibonacci(input);
                     break;
-                case "Factorial":
-                    result = serverMethods.Factorial(input);
+                case "factorial":
+                    result = serverMethods.factorial(input);
                     break;
                 default:
                     System.out.println("(!) An Error occured, check your inputs.");

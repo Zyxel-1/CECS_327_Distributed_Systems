@@ -12,14 +12,14 @@ public class Method extends UnicastRemoteObject
  
       public Method () throws RemoteException {   }
  
-      public int Fibonacci(int a) throws RemoteException{
+      public int fibonacci(int a) throws RemoteException{
           if(a <= 1){
               return a;
           }
-          return Fibonacci(a-1) + Fibonacci(a-2);
+          return fibonacci(a-1) + fibonacci(a-2);
 
       }
-      public int Factorial(int a) throws RemoteException{
+      public int factorial(int a) throws RemoteException{
           int fact = 1;
           for(int i = 1; i <= a; i++){
               fact = fact * i;
