@@ -11,7 +11,7 @@ public class Assn6Server {
 	   public static void main (String[] argv) {
 		   try {
 			   Method localMethods = new Method();			   		   
-			   Naming.rebind("rmi://localhost/ABC", localMethods);
+			   Naming.rebind(argv[0], localMethods);
  
 			   System.out.println("Server is ready.");
 			   }catch (Exception e) {

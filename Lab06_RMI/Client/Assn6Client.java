@@ -18,10 +18,9 @@ public class Assn6Client {
             System.out.println("Your IP Address: " + args[0]);
             System.out.println("You have selected: " + args[1]);
             System.out.println("Input number was: " + args[2]);
-            // Setting up connection to Server
-            String connection = "rmi://" + args[0] + "/ABC";
+
             // Connects to server and communicates with the server.
-            serverMethods = (MethodInterface)Naming.lookup(connection);
+            serverMethods = (MethodInterface)Naming.lookup(args[0]);
             // Local Development connection
             //serverMethods = (MethodInterface)Naming.lookup("rmi://localhost/ABC");
             // Parse input number
