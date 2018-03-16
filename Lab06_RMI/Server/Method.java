@@ -11,19 +11,17 @@ public class Method extends UnicastRemoteObject
          implements MethodInterface {
  
       public Method () throws RemoteException {   }
- 
-      public int fibonacci(int a) throws RemoteException{
-          if(a <= 1){
-              return a;
+    public int fibonacci(int n) throws RemoteException{
+        if(n <= 1){
+              return n;
           }
-          return fibonacci(a-1) + fibonacci(a-2);
-
-      }
-      public int factorial(int a) throws RemoteException{
-          int fact = 1;
-          for(int i = 1; i <= a; i++){
+          return fibonacci(n-1) + fibonacci(n-2);
+    }
+	public int factorial(int n) throws RemoteException{
+        int fact = 1;
+          for(int i = 1; i <= n; i++){
               fact = fact * i;
           }
           return fact;
-      }
+    }
  }

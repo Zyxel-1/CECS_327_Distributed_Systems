@@ -12,17 +12,14 @@ import java.util.*;
 public class Assn6Client {
         
 	public static void main (String[] args) {
-        MethodInterface serverMethods;
+        
 		try {
-            // Printing out Inputs to verify if reading properly.
+            // Printing out Inputs to verify if reading properly. TO BE DELETED
             System.out.println("Your IP Address: "   + args[0]);
             System.out.println("You have selected: " + args[1]);
             System.out.println("Input number was: "  + args[2]);
-
             // Connects to server and communicates with the server.
-            serverMethods = (MethodInterface)Naming.lookup(args[0]);
-            // Local Development connection
-            //serverMethods = (MethodInterface)Naming.lookup("rmi://localhost/ABC");
+            MethodInterface serverMethods = (MethodInterface)Naming.lookup(args[0]);
             // Parse input number
             int input = Integer.parseInt(args[2]);
             int result = -1;
@@ -30,15 +27,15 @@ public class Assn6Client {
             switch(args[1]){
                 case "fibonacci":
                     result = serverMethods.fibonacci(input);
+                    System.out.println("The fibonacci of "+args[2]+" is "+result);
                     break;
                 case "factorial":
                     result = serverMethods.factorial(input);
+                    System.out.println("The factorial of "+args[2]+" is "+result);
                     break;
                 default:
                     System.out.println("(!) An Error occured, check your inputs.");
             }
-            // Display Results
-			System.out.println("Result is :"+result);
 			}catch (Exception e) {
 				System.out.println("IO exception: " + e);
 				}

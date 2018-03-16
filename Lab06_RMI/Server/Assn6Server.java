@@ -11,9 +11,9 @@ public class Assn6Server {
 	   public static void main (String[] argv) {
 		   try {
 			   Method localMethods = new Method();			   		   
-			   Naming.rebind(argv[0], localMethods);
+			   Naming.rebind("rmi://"+argv[0]+"/cecs327", localMethods);
  
-			   System.out.println("Server is ready.");
+			   System.out.println("Server is ready. The arguments should be factorial n or fibonacci n");
 			   }catch (Exception e) {
 				   System.out.println("Server failed: " + e);
 				}
