@@ -14,10 +14,6 @@ public class Assn6Client {
 	public static void main (String[] args) {
         
 		try {
-            // Printing out Inputs to verify if reading properly. TO BE DELETED
-            System.out.println("Your IP Address: "   + args[0]);
-            System.out.println("You have selected: " + args[1]);
-            System.out.println("Input number was: "  + args[2]);
             // Connects to server and communicates with the server.
             MethodInterface serverMethods = (MethodInterface)Naming.lookup(args[0]);
             // Parse input number
