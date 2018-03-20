@@ -12,7 +12,7 @@ public class Assn6Server {
 		   try {
 			   System.SetProperty("java.rmi.server.hostname",argv[0]);
 			   Method localMethods = new Method();			   		   
-			   Naming.rebind("rmi://"+argv[0]+"/cecs327", localMethods);
+			   Naming.rebind("rmi://localhost:1099/cecs327", localMethods);
  
 			   System.out.println("Server is ready. The arguments should be factorial n or fibonacci n");
 			   }catch (Exception e) {
