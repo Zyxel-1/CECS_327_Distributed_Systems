@@ -1,3 +1,9 @@
+/*
+    Name: Roberto Sanchez
+    Date: March 23, 2018
+    CECS 327 - Distributed Systems
+    Lab07: Simmple Chat
+*/
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
