@@ -9,33 +9,39 @@ import java.io.*;
 import java.util.*;
 
 public class client{
+     // Setting up client with the inputs: [pastryID] [serverIPAddress]
      public static void main(String[] args) {
         DatagramSocket aSocket = null;
          try{
+            // Storing pastryID in DatagramSocket
             aSocket = new DatagramSocket();
             byte[] m = args[0].getBytes();
-
+            // Storing IP Address of the server
             InetAddress aHost = InetAddress.getByName(args[1]);
-
+            // Connecting to port 32710 on the server
             int serverPort = 32710;
+            // Prepping request
             DatagramPacket request = new DatagramPacket(m , m.length, aHost, serverPort);
+            // Sending request
             aSocket.send(request);
-
+            // Getting response
             byte[] buffer = new byte [1000];
             DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+            // Receive Response from server
             aSocket.receive(reply);
-
-            System.out.println("Reply: "+new String(reply.getData())+"\n");
+            // Printing out response
+            System.out.println("Reply: " + new String(reply.getData()) + "\n");
          }
          catch (SocketException e){
-            System.out.println("Socket: "+e.getMessage());
+            // Socket Exception was thrown
+            System.out.println("Socket: " + e.getMessage());
          }
-
          catch (IOException e){
-             System.out.println("IO: "+e.getMessage());
-
+            // IO Exception was thrown
+             System.out.println("IO: " + e.getMessage());
          }
          finally{
+            // Close socket
              if(aSocket != null)
                  aSocket.close();
          }

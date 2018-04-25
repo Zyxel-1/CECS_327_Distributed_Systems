@@ -12,18 +12,28 @@ import java.util.*;
 import javax.lang.model.util.ElementScanner6;
 
 public class server {
+    // Run this as nohup java server &
     public static void main(String[] args) {
-        // Setting up Socket
+        // Setting up Socket to receive datagram
         DatagramSocket aSocket = null;
         try{
+          // Set up socket to listen on port 32710
             aSocket = new DatagramSocket(32710);
+            // Constantly loop until program terminates
             while (true){
+                // Create space for incoming request
                 byte [] buffer = new byte[1000];
+                // Setting up thier request
                 DatagramPacket request  = new DatagramPacket(buffer, buffer.length);
+                // Receive packet
                 aSocket.receive(request);
+                // Printing request and IP address
                 System.out.println("Request received from: " + request.getAddress().toString());
+                // Set pastery table and process data
                 request.setData(pastryTable(new String( request.getData(), "UTF-8")).getBytes());
+                // Set up reply to client with data
                 DatagramPacket reply = new DatagramPacket( request.getData(), request.getLength(), request.getAddress(), request.getPort());
+                // Send reply to server
                 aSocket.send(reply);
             }
         }catch(SocketException e){
